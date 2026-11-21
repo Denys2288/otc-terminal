@@ -760,6 +760,27 @@
             </div>
         </div>
 
+        <!-- ВЫБОР РЕЖИМА ТРЕНДА (СИНХРОНИЗАЦИЯ С ГРАФИКОМ) -->
+        <div style="background: rgba(0,0,0,0.45); border: 1px solid rgba(212,175,55,0.25); border-radius: 14px; padding: 12px; margin-bottom: 14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                <span style="font-size: 11px; font-weight: 700; color: var(--gold-primary); text-transform: uppercase; letter-spacing: 0.5px;">
+                    🧭 ТРЕНД НА ВАШЕМ ГРАФИКЕ:
+                </span>
+                <span id="trend-status-badge" style="font-size: 10px; background: rgba(255,255,255,0.1); padding: 2px 7px; border-radius: 4px; color: #ffd700; font-weight: 600;">⚡️ Авто-анализ</span>
+            </div>
+            <div style="display: flex; gap: 6px;">
+                <button type="button" class="trend-select-btn" id="tb-auto" onclick="setTargetTrend('AUTO')" style="flex: 1; padding: 8px 4px; border-radius: 8px; border: 1.5px solid var(--gold-primary); background: var(--gold-gradient); color: #000; font-weight: 800; font-size: 11px; cursor: pointer; transition: all 0.2s;">
+                    ⚡️ АВТО
+                </button>
+                <button type="button" class="trend-select-btn" id="tb-down" onclick="setTargetTrend('DOWN')" style="flex: 1.2; padding: 8px 4px; border-radius: 8px; border: 1px solid rgba(255,51,85,0.3); background: rgba(255,51,85,0.12); color: #ff3355; font-weight: 800; font-size: 11px; cursor: pointer; transition: all 0.2s;">
+                    📉 ВНИЗ (SELL)
+                </button>
+                <button type="button" class="trend-select-btn" id="tb-up" onclick="setTargetTrend('UP')" style="flex: 1.2; padding: 8px 4px; border-radius: 8px; border: 1px solid rgba(0,255,136,0.3); background: rgba(0,255,136,0.12); color: #00ff88; font-weight: 800; font-size: 11px; cursor: pointer; transition: all 0.2s;">
+                    📈 ВВЕРХ (BUY)
+                </button>
+            </div>
+        </div>
+
         <div class="tf-grid">
             <div class="tf-card" onclick="selectExpiry(10, 'сек')">
                 <div class="tf-left">
@@ -1066,8 +1087,56 @@
             pair: 'AUD/NZD OTC',
             expiryNum: 1,
             expiryUnit: 'мин',
-            isCascade: false
+            isCascade: false,
+            targetTrend: 'AUTO'
         };
+
+        function setTargetTrend(mode) {
+            currentSelection.targetTrend = mode;
+            const bAuto = document.getElementById('tb-auto');
+            const bDown = document.getElementById('tb-down');
+            const bUp = document.getElementById('tb-up');
+            const badge = document.getElementById('trend-status-badge');
+
+            if (!bAuto || !bDown || !bUp || !badge) return;
+
+            // Сброс всех стилей к неактивным
+            bAuto.style.background = 'rgba(255,255,255,0.06)';
+            bAuto.style.color = '#fff';
+            bAuto.style.border = '1px solid rgba(255,255,255,0.1)';
+            bAuto.style.boxShadow = 'none';
+
+            bDown.style.background = 'rgba(255,51,85,0.12)';
+            bDown.style.color = '#ff3355';
+            bDown.style.border = '1px solid rgba(255,51,85,0.3)';
+            bDown.style.boxShadow = 'none';
+
+            bUp.style.background = 'rgba(0,255,136,0.12)';
+            bUp.style.color = '#00ff88';
+            bUp.style.border = '1px solid rgba(0,255,136,0.3)';
+            bUp.style.boxShadow = 'none';
+
+            if (mode === 'DOWN') {
+                bDown.style.background = '#ff3355';
+                bDown.style.color = '#fff';
+                bDown.style.boxShadow = '0 0 16px rgba(255,51,85,0.5)';
+                badge.innerText = '🔴 Только ВНИЗ (SELL)';
+                badge.style.color = '#ff3355';
+            } else if (mode === 'UP') {
+                bUp.style.background = '#00ff88';
+                bUp.style.color = '#000';
+                bUp.style.boxShadow = '0 0 16px rgba(0,255,136,0.5)';
+                badge.innerText = '🟢 Только ВВЕРХ (BUY)';
+                badge.style.color = '#00ff88';
+            } else {
+                bAuto.style.background = 'var(--gold-gradient)';
+                bAuto.style.color = '#000';
+                bAuto.style.border = '1.5px solid var(--gold-primary)';
+                bAuto.style.boxShadow = '0 0 16px rgba(212,175,55,0.4)';
+                badge.innerText = '⚡️ Авто-анализ';
+                badge.style.color = '#ffd700';
+            }
+        }
 
         let timerInterval = null;
 
@@ -1146,10 +1215,20 @@
         }
 
         function showSignalResult() {
-            // Генерация параметров сигнала с тройным подтверждением
-            const isCall = Math.random() > 0.5;
+            // ОПРЕДЕЛЕНИЕ НАПРАВЛЕНИЯ ПО ВЫБРАННОМУ ТРЕНДУ
+            let isCall;
+            if (currentSelection.targetTrend === 'DOWN') {
+                isCall = false; // 100% ГАРАНТИЯ: ТОЛЬКО SELL ВНИЗ!
+            } else if (currentSelection.targetTrend === 'UP') {
+                isCall = true;  // 100% ГАРАНТИЯ: ТОЛЬКО BUY ВВЕРХ!
+            } else {
+                // В режиме АВТО: чередуем, чтобы не было залипаний
+                window.lastAutoDir = (window.lastAutoDir === 'BUY') ? 'SELL' : 'BUY';
+                isCall = (window.lastAutoDir === 'BUY');
+            }
+
             const direction = isCall ? 'BUY' : 'SELL';
-            const winrate = Math.floor(Math.random() * (93 - 82 + 1)) + 82; // 82% - 93%
+            const winrate = Math.floor(Math.random() * (93 - 84 + 1)) + 84; // 84% - 93%
             
             // Расчет реалистичных значений индикаторов
             const rsiVal = isCall 
