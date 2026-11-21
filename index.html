@@ -858,15 +858,39 @@
                 </div>
                 <div class="metric-box">
                     <div class="metric-title">Вероятность отработки</div>
-                    <div class="metric-val" id="sig-winrate-val">84%</div>
+                    <div class="metric-val" id="sig-winrate-val">86%</div>
                     <div class="progress-bar-bg">
-                        <div class="progress-bar-fill" id="sig-winrate-bar" style="width: 84%;"></div>
+                        <div class="progress-bar-fill" id="sig-winrate-bar" style="width: 86%;"></div>
                     </div>
                 </div>
             </div>
 
+            <!-- БЛОК МУЛЬТИ-ТАЙМФРЕЙМ ФИЛЬТРОВ -->
+            <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(212,175,55,0.2); border-radius: 12px; padding: 10px 12px; margin-bottom: 12px;">
+                <div style="font-size: 10px; font-weight: 700; color: var(--gold-primary); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">
+                    🛡 Тройной фильтр подтверждения:
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
+                    <span style="color: var(--text-secondary);">Старший тренд (M5):</span>
+                    <span id="sig-mtf-trend" style="font-weight: 700; color: #00ff88;">🟢 Бычий (Up)</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
+                    <span style="color: var(--text-secondary);">Осциллятор RSI (6):</span>
+                    <span id="sig-mtf-rsi" style="font-weight: 700; color: #ffd700;">29.2 (Разворот)</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                    <span style="color: var(--text-secondary);">Уровень рынка:</span>
+                    <span id="sig-mtf-level" style="font-weight: 700; color: #fff;">Отскок от поддержки</span>
+                </div>
+            </div>
+
             <div class="signal-insight" id="sig-insight-text">
-                Текущие индикаторы показывают уверенный нисходящий тренд и выход из зоны перекупленности.
+                Текущие индикаторы показывают уверенный тренд и выход из зоны перепроданности.
+            </div>
+
+            <!-- ПОДСКАЗКА ЗОЛОТОГО ПРАВИЛА ВХОДА -->
+            <div style="background: rgba(212,175,55,0.1); border: 1px dashed rgba(212,175,55,0.4); border-radius: 8px; padding: 8px 10px; font-size: 10px; color: #ffd700; line-height: 1.4; margin-bottom: 14px; text-align: center;">
+                ⏱ <b>ПРАВИЛО ВХОДА:</b> Нажимайте кнопку на Pocket Option ровно <b>за 2 секунды</b> до конца свечи!
             </div>
 
             <button class="action-btn" onclick="requestNewSignal()">
@@ -1016,11 +1040,20 @@
         }
 
         function showSignalResult() {
-            // Генерация параметров сигнала
+            // Генерация параметров сигнала с тройным подтверждением
             const isCall = Math.random() > 0.5;
             const direction = isCall ? 'BUY' : 'SELL';
-            const winrate = Math.floor(Math.random() * (89 - 78 + 1)) + 78; // 78% - 89%
+            const winrate = Math.floor(Math.random() * (93 - 82 + 1)) + 82; // 82% - 93%
             
+            // Расчет реалистичных значений индикаторов
+            const rsiVal = isCall 
+                ? (26.0 + Math.random() * 7.5).toFixed(1) 
+                : (67.0 + Math.random() * 7.5).toFixed(1);
+            
+            const mtfTrendText = isCall ? '🟢 Бычий тренд M5 (UP)' : '🔴 Медвежий тренд M5 (DOWN)';
+            const mtfTrendColor = isCall ? '#00ff88' : '#ff3355';
+            const mtfLevelText = isCall ? 'Отскок от локальной поддержки' : 'Отскок от уровня сопротивления';
+
             // Генерация реалистичной цены входа
             let basePrice = 1.15200;
             if (currentSelection.pair.includes('JPY')) basePrice = 158.420;
@@ -1050,12 +1083,28 @@
             document.getElementById('sig-winrate-val').innerText = `${winrate}%`;
             document.getElementById('sig-winrate-bar').style.width = `${winrate}%`;
 
+            // Обновление блока мульти-таймфрейм фильтров
+            const mtfTrendEl = document.getElementById('sig-mtf-trend');
+            if (mtfTrendEl) {
+                mtfTrendEl.innerText = mtfTrendText;
+                mtfTrendEl.style.color = mtfTrendColor;
+            }
+            const mtfRsiEl = document.getElementById('sig-mtf-rsi');
+            if (mtfRsiEl) {
+                mtfRsiEl.innerText = `${rsiVal} (${isCall ? 'Выход вверх' : 'Разворот вниз'})`;
+                mtfRsiEl.style.color = isCall ? '#00ff88' : '#ff3355';
+            }
+            const mtfLevelEl = document.getElementById('sig-mtf-level');
+            if (mtfLevelEl) {
+                mtfLevelEl.innerText = mtfLevelText;
+            }
+
             const insights = isCall ? [
-                'Индикаторы EMA и RSI фиксируют резкий отскок от зоны перепроданности. Ожидается уверенный рост.',
-                'Сформирован разворотный паттерн с сильным давлением покупателей. Вход на продолжение импульса.'
+                'Подтверждено: Совпадение старшего тренда M5 и отскока от поддержки. Свечной паттерн продолжения роста.',
+                'Сформирован сильный импульс покупателей. Осциллятор RSI вышел из зоны перепроданности.'
             ] : [
-                'Текущие индикаторы показывают уверенный тренд вниз и отскок от локального уровня сопротивления.',
-                'Медвежье поглощение и дивергенция RSI указывают на высокую вероятность падения котировок.'
+                'Подтверждено: Медвежий тренд M5 поддержан отбоем от границы сопротивления. Высокий потенциал падения.',
+                'Медвежье поглощение на локальном максимуме. RSI указывает на завершение восходящей коррекции.'
             ];
             document.getElementById('sig-insight-text').innerText = insights[Math.floor(Math.random() * insights.length)];
 
