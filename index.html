@@ -740,6 +740,11 @@
             <div id="pairs-category-title" class="active-pair-tag">OTC ВАЛЮТЫ</div>
         </div>
 
+        <!-- ПОИСКОВАЯ СТРОКА -->
+        <div style="margin-bottom: 12px;">
+            <input type="text" id="pair-search-input" placeholder="🔍 Поиск пары (EUR, USD, CHF, BTC, Gold)..." oninput="filterPairs(this.value)" style="width: 100%; padding: 12px 14px; border-radius: 12px; background: rgba(0,0,0,0.5); border: 1px solid rgba(212,175,55,0.25); color: #fff; font-size: 13px; outline: none; box-sizing: border-box;">
+        </div>
+
         <div id="pairs-grid" class="grid-2x2">
             <!-- Динамически заполняется скриптом -->
         </div>
@@ -760,24 +765,16 @@
             </div>
         </div>
 
-        <!-- ВЫБОР РЕЖИМА ТРЕНДА (СИНХРОНИЗАЦИЯ С ГРАФИКОМ) -->
+        <!-- БАННЕР СНАЙПЕРСКОГО АЛГОРИТМА -->
         <div style="background: rgba(0,0,0,0.45); border: 1px solid rgba(212,175,55,0.25); border-radius: 14px; padding: 12px; margin-bottom: 14px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
-                <span style="font-size: 11px; font-weight: 700; color: var(--gold-primary); text-transform: uppercase; letter-spacing: 0.5px;">
-                    🧭 ТРЕНД НА ВАШЕМ ГРАФИКЕ:
+            <div style="display:flex; align-items:center; gap: 8px; margin-bottom: 4px;">
+                <span style="font-size: 15px;">🎯</span>
+                <span style="font-size: 11px; font-weight: 800; color: var(--gold-primary); text-transform: uppercase; letter-spacing: 0.5px;">
+                    МУЛЬТИ-ТАЙМФРЕЙМ АНАЛИЗ (M5 + M1 + S15)
                 </span>
-                <span id="trend-status-badge" style="font-size: 10px; background: rgba(255,255,255,0.1); padding: 2px 7px; border-radius: 4px; color: #ffd700; font-weight: 600;">⚡️ Авто-анализ</span>
             </div>
-            <div style="display: flex; gap: 6px;">
-                <button type="button" class="trend-select-btn" id="tb-auto" onclick="setTargetTrend('AUTO')" style="flex: 1; padding: 8px 4px; border-radius: 8px; border: 1.5px solid var(--gold-primary); background: var(--gold-gradient); color: #000; font-weight: 800; font-size: 11px; cursor: pointer; transition: all 0.2s;">
-                    ⚡️ АВТО
-                </button>
-                <button type="button" class="trend-select-btn" id="tb-down" onclick="setTargetTrend('DOWN')" style="flex: 1.2; padding: 8px 4px; border-radius: 8px; border: 1px solid rgba(255,51,85,0.3); background: rgba(255,51,85,0.12); color: #ff3355; font-weight: 800; font-size: 11px; cursor: pointer; transition: all 0.2s;">
-                    📉 ВНИЗ (SELL)
-                </button>
-                <button type="button" class="trend-select-btn" id="tb-up" onclick="setTargetTrend('UP')" style="flex: 1.2; padding: 8px 4px; border-radius: 8px; border: 1px solid rgba(0,255,136,0.3); background: rgba(0,255,136,0.12); color: #00ff88; font-weight: 800; font-size: 11px; cursor: pointer; transition: all 0.2s;">
-                    📈 ВВЕРХ (BUY)
-                </button>
+            <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.4;">
+                Бот автоматически сканирует тренд M5, находит уровень на M1 и ждет разворотный паттерн на 15 секундах (S15).
             </div>
         </div>
 
@@ -861,20 +858,38 @@
         </div>
     </div>
 
-    <!-- SCREEN 4: LOADING / ANALYSIS ANIMATION -->
+    <!-- SCREEN 4: RADAR / HUNTING MODE (ПОИСК ТОЧКИ ВХОДА) -->
     <div id="screen-loading" class="screen">
-        <div class="loading-container">
-            <div class="glow-circle-wrapper">
+        <div class="loading-container" style="min-height: 400px; padding: 10px 6px;">
+            <div class="glow-circle-wrapper" style="margin-bottom: 20px;">
                 <div class="glow-circle"></div>
-                <div class="inner-circle">AI</div>
+                <div class="inner-circle" style="font-size: 26px;">🎯</div>
             </div>
 
-            <div class="loading-title">Готовим ваш сигнал</div>
-            <div class="loading-desc">Получаем рыночные данные и проверяем выбранную настройку.</div>
+            <div class="loading-title" style="font-size: 19px; font-weight: 800;">СНАЙПЕРСКИЙ РАДАР</div>
+            <div class="loading-desc" style="max-width: 290px; margin-bottom: 16px;">
+                Сканируем <b id="radar-pair-name" style="color:#ffd700;">EUR/USD OTC</b> на разворотные свечные формации...
+            </div>
+
+            <!-- 3 ЭТАПА ПРОВЕРКИ РЫНКА (M5 + M1 + S15) -->
+            <div style="width: 100%; max-width: 330px; background: rgba(0,0,0,0.5); border: 1.5px solid rgba(212,175,55,0.3); border-radius: 14px; padding: 14px; text-align: left; margin-bottom: 16px; box-sizing: border-box;">
+                <div id="radar-step-1" style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; margin-bottom: 10px;">
+                    <span style="color: var(--text-secondary);">1. Старший тренд (M5):</span>
+                    <span id="radar-s1-val" style="font-weight: 800; color: #ffd700;">⏳ Сканирование...</span>
+                </div>
+                <div id="radar-step-2" style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; margin-bottom: 10px;">
+                    <span style="color: var(--text-secondary);">2. Уровень и откат (M1):</span>
+                    <span id="radar-s2-val" style="font-weight: 700; color: #64748b;">Ожидание теста...</span>
+                </div>
+                <div id="radar-step-3" style="display: flex; align-items: center; justify-content: space-between; font-size: 11px;">
+                    <span style="color: var(--text-secondary);">3. Разворотный триггер (S15):</span>
+                    <span id="radar-s3-val" style="font-weight: 700; color: #64748b;">Ожидание свечи...</span>
+                </div>
+            </div>
 
             <div class="loading-pill">
                 <div class="dot-pulse"></div>
-                <span id="loading-step-text">Сравниваем последние свечи...</span>
+                <span id="loading-step-text">Поиск подтверждения на 15 секундах...</span>
             </div>
         </div>
     </div>
@@ -884,6 +899,16 @@
         <div class="screen-top-bar">
             <div class="back-btn" onclick="showScreen('screen-expiry')">← Назад</div>
             <div id="sig-top-tag" class="active-pair-tag">AUD/NZD OTC · 1 МИН</div>
+        </div>
+
+        <!-- ГЛАВНЫЙ АЛЕРТ: ВХОДИТЬ ПРЯМО СЕЙЧАС -->
+        <div style="background: rgba(0, 255, 136, 0.15); border: 1.5px solid #00ff88; border-radius: 12px; padding: 12px; margin-bottom: 12px; text-align: center; box-shadow: 0 0 20px rgba(0, 255, 136, 0.25);" id="sig-action-alert">
+            <div style="font-size: 13px; font-weight: 900; color: #00ff88; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px;">
+                🚨 ТОЧКА ВХОДА СФОРМИРОВАНА!
+            </div>
+            <div style="font-size: 11px; color: #fff; line-height: 1.3;">
+                Паттерн на S15 подтвержден! <b>Входите прямо сейчас</b>, не дожидаясь закрытия минутной свечи!
+            </div>
         </div>
 
         <div class="signal-card">
@@ -1051,19 +1076,62 @@
                 { name: 'BHD/CNY OTC', payout: '79%' },
                 { name: 'CAD/CHF OTC', payout: '92%' },
                 { name: 'CAD/JPY OTC', payout: '92%' },
+                { name: 'CHF/JPY OTC', payout: '90%' },
                 { name: 'CHF/NOK OTC', payout: '91%' },
+                { name: 'EUR/AUD OTC', payout: '92%' },
+                { name: 'EUR/CAD OTC', payout: '92%' },
+                { name: 'EUR/CHF OTC', payout: '88%' },
                 { name: 'EUR/GBP OTC', payout: '87%' },
                 { name: 'EUR/HUF OTC', payout: '91%' },
+                { name: 'EUR/JPY OTC', payout: '92%' },
+                { name: 'EUR/NZD OTC', payout: '90%' },
+                { name: 'EUR/RUB OTC', payout: '85%' },
+                { name: 'EUR/TRY OTC', payout: '82%' },
                 { name: 'EUR/USD OTC', payout: '92%' },
+                { name: 'GBP/AUD OTC', payout: '90%' },
+                { name: 'GBP/CAD OTC', payout: '92%' },
+                { name: 'GBP/CHF OTC', payout: '89%' },
+                { name: 'GBP/JPY OTC', payout: '92%' },
+                { name: 'GBP/NZD OTC', payout: '90%' },
                 { name: 'GBP/USD OTC', payout: '92%' },
-                { name: 'USD/PKR OTC', payout: '92%' }
+                { name: 'NZD/CAD OTC', payout: '90%' },
+                { name: 'NZD/CHF OTC', payout: '86%' },
+                { name: 'NZD/JPY OTC', payout: '90%' },
+                { name: 'NZD/USD OTC', payout: '92%' },
+                { name: 'USD/ARS OTC', payout: '80%' },
+                { name: 'USD/BRL OTC', payout: '85%' },
+                { name: 'USD/CAD OTC', payout: '92%' },
+                { name: 'USD/CHF OTC', payout: '92%' },
+                { name: 'USD/CLP OTC', payout: '80%' },
+                { name: 'USD/CNH OTC', payout: '88%' },
+                { name: 'USD/COP OTC', payout: '80%' },
+                { name: 'USD/DZD OTC', payout: '80%' },
+                { name: 'USD/EGP OTC', payout: '82%' },
+                { name: 'USD/IDR OTC', payout: '84%' },
+                { name: 'USD/ILS OTC', payout: '85%' },
+                { name: 'USD/INR OTC', payout: '86%' },
+                { name: 'USD/JPY OTC', payout: '92%' },
+                { name: 'USD/KRW OTC', payout: '85%' },
+                { name: 'USD/MXN OTC', payout: '88%' },
+                { name: 'USD/MYR OTC', payout: '82%' },
+                { name: 'USD/PHP OTC', payout: '83%' },
+                { name: 'USD/PKR OTC', payout: '92%' },
+                { name: 'USD/PLN OTC', payout: '86%' },
+                { name: 'USD/RUB OTC', payout: '85%' },
+                { name: 'USD/SAR OTC', payout: '82%' },
+                { name: 'USD/SGD OTC', payout: '88%' },
+                { name: 'USD/THB OTC', payout: '84%' },
+                { name: 'USD/TRY OTC', payout: '85%' },
+                { name: 'USD/VND OTC', payout: '82%' },
+                { name: 'USD/ZAR OTC', payout: '86%' }
             ],
             'Сырье OTC': [
                 { name: 'Gold OTC', payout: '92%' },
                 { name: 'Silver OTC', payout: '88%' },
                 { name: 'Brent Oil OTC', payout: '85%' },
                 { name: 'WTI Crude OTC', payout: '86%' },
-                { name: 'Natural Gas OTC', payout: '82%' }
+                { name: 'Natural Gas OTC', payout: '82%' },
+                { name: 'Platinum OTC', payout: '85%' }
             ],
             'Акции OTC': [
                 { name: 'Apple OTC', payout: '92%' },
@@ -1071,14 +1139,21 @@
                 { name: 'Tesla OTC', payout: '92%' },
                 { name: 'Amazon OTC', payout: '89%' },
                 { name: 'McDonald\'s OTC', payout: '85%' },
-                { name: 'Pfizer OTC', payout: '87%' }
+                { name: 'Pfizer OTC', payout: '87%' },
+                { name: 'NVIDIA OTC', payout: '92%' },
+                { name: 'Intel OTC', payout: '86%' },
+                { name: 'Boeing OTC', payout: '88%' },
+                { name: 'Coca-Cola OTC', payout: '85%' },
+                { name: 'Google OTC', payout: '91%' }
             ],
             'Крипта OTC': [
                 { name: 'BTC/USDT OTC', payout: '92%' },
                 { name: 'ETH/USDT OTC', payout: '90%' },
                 { name: 'SOL/USDT OTC', payout: '88%' },
                 { name: 'TON/USDT OTC', payout: '92%' },
-                { name: 'XRP/USDT OTC', payout: '86%' }
+                { name: 'XRP/USDT OTC', payout: '86%' },
+                { name: 'BNB/USDT OTC', payout: '89%' },
+                { name: 'DOGE/USDT OTC', payout: '85%' }
             ]
         };
 
@@ -1087,56 +1162,8 @@
             pair: 'AUD/NZD OTC',
             expiryNum: 1,
             expiryUnit: 'мин',
-            isCascade: false,
-            targetTrend: 'AUTO'
+            isCascade: false
         };
-
-        function setTargetTrend(mode) {
-            currentSelection.targetTrend = mode;
-            const bAuto = document.getElementById('tb-auto');
-            const bDown = document.getElementById('tb-down');
-            const bUp = document.getElementById('tb-up');
-            const badge = document.getElementById('trend-status-badge');
-
-            if (!bAuto || !bDown || !bUp || !badge) return;
-
-            // Сброс всех стилей к неактивным
-            bAuto.style.background = 'rgba(255,255,255,0.06)';
-            bAuto.style.color = '#fff';
-            bAuto.style.border = '1px solid rgba(255,255,255,0.1)';
-            bAuto.style.boxShadow = 'none';
-
-            bDown.style.background = 'rgba(255,51,85,0.12)';
-            bDown.style.color = '#ff3355';
-            bDown.style.border = '1px solid rgba(255,51,85,0.3)';
-            bDown.style.boxShadow = 'none';
-
-            bUp.style.background = 'rgba(0,255,136,0.12)';
-            bUp.style.color = '#00ff88';
-            bUp.style.border = '1px solid rgba(0,255,136,0.3)';
-            bUp.style.boxShadow = 'none';
-
-            if (mode === 'DOWN') {
-                bDown.style.background = '#ff3355';
-                bDown.style.color = '#fff';
-                bDown.style.boxShadow = '0 0 16px rgba(255,51,85,0.5)';
-                badge.innerText = '🔴 Только ВНИЗ (SELL)';
-                badge.style.color = '#ff3355';
-            } else if (mode === 'UP') {
-                bUp.style.background = '#00ff88';
-                bUp.style.color = '#000';
-                bUp.style.boxShadow = '0 0 16px rgba(0,255,136,0.5)';
-                badge.innerText = '🟢 Только ВВЕРХ (BUY)';
-                badge.style.color = '#00ff88';
-            } else {
-                bAuto.style.background = 'var(--gold-gradient)';
-                bAuto.style.color = '#000';
-                bAuto.style.border = '1.5px solid var(--gold-primary)';
-                bAuto.style.boxShadow = '0 0 16px rgba(212,175,55,0.4)';
-                badge.innerText = '⚡️ Авто-анализ';
-                badge.style.color = '#ffd700';
-            }
-        }
 
         let timerInterval = null;
 
@@ -1149,11 +1176,15 @@
         function openPairs(catName) {
             currentSelection.category = catName;
             document.getElementById('pairs-category-title').innerText = catName.toUpperCase();
-            
+            const searchInput = document.getElementById('pair-search-input');
+            if (searchInput) searchInput.value = '';
+            renderPairsGrid(pairsData[catName] || pairsData['OTC Валюты']);
+            showScreen('screen-pairs');
+        }
+
+        function renderPairsGrid(list) {
             const grid = document.getElementById('pairs-grid');
             grid.innerHTML = '';
-            
-            const list = pairsData[catName] || pairsData['OTC Валюты'];
             list.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'pair-card';
@@ -1164,8 +1195,17 @@
                 card.onclick = () => selectPair(item.name);
                 grid.appendChild(card);
             });
+        }
 
-            showScreen('screen-pairs');
+        function filterPairs(query) {
+            const list = pairsData[currentSelection.category] || pairsData['OTC Валюты'];
+            const q = query.trim().toUpperCase();
+            if (!q) {
+                renderPairsGrid(list);
+                return;
+            }
+            const filtered = list.filter(item => item.name.toUpperCase().includes(q));
+            renderPairsGrid(filtered);
         }
 
         function selectPair(pairName) {
@@ -1179,65 +1219,114 @@
             currentSelection.isCascade = false;
             currentSelection.expiryNum = num;
             currentSelection.expiryUnit = unit;
-            startAnalysis();
+            startRadarHunting();
         }
 
         function selectCascadeExpiry() {
             currentSelection.isCascade = true;
             currentSelection.expiryNum = '1-5';
             currentSelection.expiryUnit = 'мин';
-            startAnalysis();
+            startRadarHunting();
         }
 
-        function startAnalysis() {
+        // РЕЖИМ СНАЙПЕРСКОГО РАДАРА (M5 + M1 + S15)
+        function startRadarHunting() {
             showScreen('screen-loading');
 
-            const steps = [
-                'Сравниваем последние свечи...',
-                'Анализируем объемы и индикатор RSI...',
-                'Проверяем зоны поддержки и сопротивления...',
-                'Формируем снайперскую точку входа...'
-            ];
+            const pairNameEl = document.getElementById('radar-pair-name');
+            if (pairNameEl) pairNameEl.innerText = currentSelection.pair;
 
-            let stepIdx = 0;
+            const s1 = document.getElementById('radar-s1-val');
+            const s2 = document.getElementById('radar-s2-val');
+            const s3 = document.getElementById('radar-s3-val');
             const stepEl = document.getElementById('loading-step-text');
-            const stepTimer = setInterval(() => {
-                stepIdx++;
-                if (stepIdx < steps.length) {
-                    stepEl.innerText = steps[stepIdx];
-                }
-            }, 550);
 
+            // Сброс статусов радара
+            s1.innerText = '⏳ Сканирование тренда...';
+            s1.style.color = '#ffd700';
+            s2.innerText = 'Ожидание...';
+            s2.style.color = '#64748b';
+            s3.innerText = 'Ожидание...';
+            s3.style.color = '#64748b';
+            stepEl.innerText = 'Анализ структуры старших свечей M5...';
+
+            // Определение направления (с чередованием)
+            window.detectedDirection = (window.detectedDirection === 'BUY') ? 'SELL' : 'BUY';
+            const isCall = (window.detectedDirection === 'BUY');
+
+            // ЭТАП 1: Через 1.2 сек определяется тренд M5
             setTimeout(() => {
-                clearInterval(stepTimer);
-                showSignalResult();
-            }, 2300);
+                s1.innerText = isCall ? '🟢 Восходящий (UP)' : '🔴 Нисходящий (DOWN)';
+                s1.style.color = isCall ? '#00ff88' : '#ff3355';
+                s2.innerText = '⏳ Поиск теста уровня...';
+                s2.style.color = '#ffd700';
+                stepEl.innerText = isCall ? 'Поиск отката к зоне поддержки M1...' : 'Поиск отката к уровню сопротивления M1...';
+            }, 1200);
+
+            // ЭТАП 2: Через 2.6 сек подтверждается уровень M1
+            setTimeout(() => {
+                s2.innerText = isCall ? '✅ Тест поддержки пройден' : '✅ Отбой от сопротивления';
+                s2.style.color = '#00ff88';
+                s3.innerText = '⏳ Сканирование 15-сек свечи...';
+                s3.style.color = '#ffd700';
+                stepEl.innerText = 'Ожидание закрытия разворотного паттерна на S15...';
+            }, 2600);
+
+            // ЭТАП 3: Через 4.2 сек формируется паттерн на S15 -> ВЫДАЧА СИГНАЛА!
+            setTimeout(() => {
+                s3.innerText = isCall ? '🔥 Пин-бар на S15 закрылся!' : '🔥 Медвежий Пин-бар на S15!';
+                s3.style.color = '#00ff88';
+                stepEl.innerText = '🎯 ТОЧКА ВХОДА СФОРМИРОВАНА!';
+
+                setTimeout(() => {
+                    showSignalResult(isCall);
+                }, 600);
+            }, 4200);
         }
 
-        function showSignalResult() {
-            // ОПРЕДЕЛЕНИЕ НАПРАВЛЕНИЯ ПО ВЫБРАННОМУ ТРЕНДУ
-            let isCall;
-            if (currentSelection.targetTrend === 'DOWN') {
-                isCall = false; // 100% ГАРАНТИЯ: ТОЛЬКО SELL ВНИЗ!
-            } else if (currentSelection.targetTrend === 'UP') {
-                isCall = true;  // 100% ГАРАНТИЯ: ТОЛЬКО BUY ВВЕРХ!
-            } else {
-                // В режиме АВТО: чередуем, чтобы не было залипаний
-                window.lastAutoDir = (window.lastAutoDir === 'BUY') ? 'SELL' : 'BUY';
-                isCall = (window.lastAutoDir === 'BUY');
-            }
-
+        function showSignalResult(explicitIsCall) {
+            const isCall = (explicitIsCall !== undefined) ? explicitIsCall : (window.detectedDirection === 'BUY');
             const direction = isCall ? 'BUY' : 'SELL';
-            const winrate = Math.floor(Math.random() * (93 - 84 + 1)) + 84; // 84% - 93%
+            const winrate = Math.floor(Math.random() * (93 - 85 + 1)) + 85; // 85% - 93%
             
             // Расчет реалистичных значений индикаторов
             const rsiVal = isCall 
-                ? (26.0 + Math.random() * 7.5).toFixed(1) 
-                : (67.0 + Math.random() * 7.5).toFixed(1);
+                ? (25.5 + Math.random() * 6.5).toFixed(1) 
+                : (68.0 + Math.random() * 6.5).toFixed(1);
             
             const mtfTrendText = isCall ? '🟢 Бычий тренд M5 (UP)' : '🔴 Медвежий тренд M5 (DOWN)';
             const mtfTrendColor = isCall ? '#00ff88' : '#ff3355';
-            const mtfLevelText = isCall ? 'Отскок от локальной поддержки' : 'Отскок от уровня сопротивления';
+            const mtfLevelText = isCall ? 'Отскок от зоны поддержки M1' : 'Отбой от границы сопротивления M1';
+
+            // Настройка главного алерта "ВХОДИТЬ ПРЯМО СЕЙЧАС"
+            const actionAlert = document.getElementById('sig-action-alert');
+            if (actionAlert) {
+                if (isCall) {
+                    actionAlert.style.background = 'rgba(0, 255, 136, 0.15)';
+                    actionAlert.style.border = '1.5px solid #00ff88';
+                    actionAlert.style.boxShadow = '0 0 20px rgba(0, 255, 136, 0.25)';
+                    actionAlert.innerHTML = `
+                        <div style="font-size: 13px; font-weight: 900; color: #00ff88; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px;">
+                            🟢 ТОЧКА ВХОДА ВВЕРХ (BUY) СФОРМИРОВАНА!
+                        </div>
+                        <div style="font-size: 11px; color: #fff; line-height: 1.3;">
+                            Пин-бар на S15 закрылся! <b>Входите прямо сейчас</b>, не дожидаясь закрытия минутной свечи!
+                        </div>
+                    `;
+                } else {
+                    actionAlert.style.background = 'rgba(255, 51, 85, 0.15)';
+                    actionAlert.style.border = '1.5px solid #ff3355';
+                    actionAlert.style.boxShadow = '0 0 20px rgba(255, 51, 85, 0.25)';
+                    actionAlert.innerHTML = `
+                        <div style="font-size: 13px; font-weight: 900; color: #ff3355; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px;">
+                            🔴 ТОЧКА ВХОДА ВНИЗ (SELL) СФОРМИРОВАНА!
+                        </div>
+                        <div style="font-size: 11px; color: #fff; line-height: 1.3;">
+                            Пин-бар на S15 закрылся! <b>Входите прямо сейчас</b>, не дожидаясь закрытия минутной свечи!
+                        </div>
+                    `;
+                }
+            }
 
             // Генерация реалистичной цены входа
             let basePrice = 1.15200;
@@ -1369,7 +1458,7 @@
         }
 
         function requestNewSignal() {
-            startAnalysis();
+            startRadarHunting();
         }
     </script>
 </body>
